@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body > div {
+    font-family: Arial sans-serif;
+    font-size: 24px;
+	width: 50%;
+	border: 2px solid #dedede;
+	margin: 0 25%;
+	padding: 0px;
+	}
+	
+div > main {
+	padding: 20px;
+	background-color: #fefefe;
+}
+	
+table {
+	background-color: #dedede;
+	color: #001001;
+	}
+	
+table th {
+	padding: 4px;
+}
+
+table tr {
+	margin-top:4px;
+	margin-bottom: 4px;
+}
+
+table tr:nth-of-type(odd){
+	background-color: #9E9E9E;
+}
+	
+table tr:nth-of-type(even){
+	background-color: #d3d3d3;
+}
+	
+.table-editable {
+	position: relative;
+} 
+.glyphicon {
+	font-size: 20px;
+}
+
+.table-remove {
+	color: #700;
+	cursor: pointer;
+}
+  
+.table-remove:hover {
+	color: #f00;
+}
+
+.table-up, .table-down {
+	color: #007;
+	cursor: pointer;
+}
+  
+.table-up:hover, .table-down:hover {
+    color: #00f;
+}
+
+.table-add {
+	color: #070;
+	cursor: pointer;
+	position: absolute;
+	top: 8px;
+	right: 0;
+	font-size: 20px;
+	color: #070;
+    cursor: pointer;
+    position: absolute;
+    top: 8px;
+    right: 0;
+	display: inline-block;
+	font-style: normal;
+    font-weight: 400;
+    line-height: 1;
+}
+
+.table-add:hover {
+	color: #0b0;
+}
+
+</style>
+</head>
+<body>
+<div>
+</div>
+</body>
+<script>
+var mainTable = document.createElement("main");
+mainTable.setAttribute("id","table");
+mainTable.classList.add("table-editable");
+
+document.getElementsByTagName("div")[0].appendChild(mainTable);
+
+var plusButton = document.createElement("span");
+plusButton.classList.add("table-add");
+plusButton.innerHTML = "+";
+mainTable.appendChild(plusButton);
+
+var subTable = document.createElement("table");
+var headingRow = document.createElement("tr");
+var headings = [];
+for (var i=0; i<4; i++) {
+	headings[i]=document.createElement("th");
+	headingRow.appendChild(headings[i]);
+}
+headings[0].innerHTML = "Name";
+headings[1].innerHTML = "Value";
+
+var firstRow = document.createElement("tr");
+var tableCells = [];
+for (var i=0;i<4;i++) {
+	tableCells[i] = document.createElement("td");
+	firstRow.appendChild(tableCells[i]);
+}
+
+tableCells[0].setAttribute("contenteditable","true");
+tableCells[0].innerHTML = "test 1";
+tableCells[1].setAttribute("contenteditable","true");
+tableCells[1].innerHTML = "test 1";
+
+var removeSpan = document.createElement("span");
+removeSpan.classList.add("table-remove");
+removeSpan.innerHTML = "X";
+tableCells[2].appendChild(removeSpan);
+
+var upSpan = document.createElement("span");
+upSpan.classList.add("table-up");
+upSpan.innerHTML = "\/\\";
+
+var downSpan = document.createElement("span");
+downSpan.classList.add("table-down");
+downSpan.innerHTML = "\\\/";
+tableCells[3].appendChild(upSpan);
+tableCells[3].appendChild(downSpan);
+
+var hideRow = firstRow.cloneNode(true);
+hideRow.classList.add("hide");
+
+var tableBody = document.createElement("tbody");
+subTable.appendChild(tableBody);
+
+tableBody.appendChild(headingRow);
+tableBody.appendChild(firstRow);
+tableBody.appendChild(hideRow);
+mainTable.appendChild(subTable);
+
+var exportButton = document.createElement("button");
+exportButton.setAttribute("id","export-btn");
+exportButton.classList.add("btn");
+exportButton.classList.add("btn-primary");
+exportButton.innerHTML = "Export Data";
+
+var exportText = document.createElement("p");
+exportText.setAttribute("id","export");
+
+mainTable.appendChild(exportButton);
+mainTable.appendChild(exportText);
+
+var table = subTable;
+var button = exportButton;
+var exportitems = exportText;
+
+var initEvents = function() {
+	var removeXs = document.getElementsByClassName("table-remove");
+	for (var i = 0;i<removeXs.length;i++) {
+		removeXs[i].addEventListener("click",
+			function(e){
+				table.getElementsByTagName("tbody")[0].removeChild(this.parentElement.parentElement);
+			});
+	}
+
+	var up1s = document.getElementsByClassName("table-up");
+	for (var i = 0;i<up1s.length;i++) {
+		up1s[i].addEventListener("click",
+			function(e){
+				var row = this.parentElement.parentElement;
+				if (row.rowIndex == 1) return;
+				table.getElementsByTagName("tbody")[0].insertBefore(row, row.previousElementSibling);
+			});
+	}
+
+	var down1s = document.getElementsByClassName("table-down");
+	for (var i = 0;i<down1s.length;i++) {
+		down1s[i].addEventListener("click",
+			function(e){
+				var row = this.parentElement.parentElement;
+				if (row.rowIndex > table.rows.length-1) return;
+				table.getElementsByTagName("tbody")[0].insertBefore(row.nextElementSibling, row);
+			});
+	}
+}
+
+
+var tableadd = document.getElementsByClassName("table-add")[0];
+tableadd.addEventListener("click",
+	function(e){
+		var clone = table.getElementsByClassName("hide")[0].cloneNode(true);
+		clone.className = clone.className.replace(/\bhide-table-line\b/g, "");
+		initEvents();
+		table.getElementsByTagName("tbody")[0].appendChild(clone);
+	});
+initEvents();
+
+button.addEventListener("click",
+	function(e){
+		var rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+		var arr = Array.prototype.slice.call( rows, 0 );
+		var headers = [];
+		var data = [];
+		title = arr.shift();
+		var titles = title.getElementsByTagName("th");
+		for (var i=0; i<titles.length; i++) {
+			var text = titles[i].innerHTML;
+			if (text){
+				headers.push(text.toLowerCase());
+			}
+		}
+		for (var i=0;i<arr.length; i++){
+			var td = arr[i].getElementsByTagName("td");
+			var h = {};
+			for (var j=0;j<headers.length;j++) {
+				h[headers[j]] = td[j].innerHTML;
+			}
+		data.push(h);
+		}
+		exportitems.innerHTML = JSON.stringify(data);
+	});
+	
+</script>
+</html>
